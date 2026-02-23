@@ -7,8 +7,8 @@ RUN bun install --production --frozen-lockfile
 
 COPY . .
 
-EXPOSE 3000
+EXPOSE 3333
 
-ENV PORT=3000
+ENV PORT=3333
 
 CMD ["bun", "run", "src/index.ts"]

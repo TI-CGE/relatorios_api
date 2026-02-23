@@ -2,7 +2,7 @@ import { isAuthorized, unauthorizedResponse } from "./middleware/auth";
 import { buscarDadosRelatorio } from "./services/relatorio";
 import { buildPdf } from "./pdf/builder";
 
-const PORT = parseInt(process.env.PORT ?? "3000", 10);
+const PORT = parseInt(process.env.PORT ?? "3333", 10);
 
 function parseIdSolicitacao(value: string | null): number | null {
   if (value == null || value === "") return null;
@@ -68,9 +68,8 @@ async function handleRelatorio(req: Request): Promise<Response> {
   });
 }
 
-const server = Bun.serve({
-  port: PORT,
-  async fetch(req) {
+const config = {
+  async fetch(req: Request) {
     const url = new URL(req.url);
     if (url.pathname === "/health") {
       return new Response(JSON.stringify({ status: "ok" }), {
@@ -88,10 +87,23 @@ const server = Bun.serve({
     }
     return handleRelatorio(req);
   },
-  error(error) {
+  error(error: Error) {
     console.error(error);
     return new Response("Internal Server Error", { status: 500 });
   },
-});
+};
+
+let server: ReturnType<typeof Bun.serve> | undefined;
+for (let p = PORT; p < PORT + 10; p++) {
+  try {
+    server = Bun.serve({ ...config, port: p });
+    break;
+  } catch (e: unknown) {
+    const err = e as { code?: string };
+    if (err?.code === "EADDRINUSE") continue;
+    throw e;
+  }
+}
+if (!server) throw new Error("Nenhuma porta disponível entre " + PORT + " e " + (PORT + 9));
 
 console.log(`Servidor em http://localhost:${server.port}`);

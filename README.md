@@ -24,16 +24,16 @@ Build:
 docker build -t relatorios-api .
 ```
 
-Execução (porta 3000, env em arquivo):
+Execução (porta 3333, env em arquivo):
 
 ```bash
-docker run -p 3000:3000 --env-file .env relatorios-api
+docker run -p 3333:3333 --env-file .env relatorios-api
 ```
 
 Ou passando variáveis:
 
 ```bash
-docker run -p 3000:3000 \
+docker run -p 3333:3333 \
   -e API_TOKEN=seu-token \
   -e DB_HOST=host \
   -e DB_PORT=3306 \
@@ -43,7 +43,7 @@ docker run -p 3000:3000 \
   relatorios-api
 ```
 
-A API usa a variável `PORT` (padrão 3000) dentro do container.
+A API usa a variável `PORT` (padrão 3333) dentro do container.
 
 ## Endpoints
 
