@@ -59,7 +59,7 @@ async function handleRelatorio(req: Request): Promise<Response> {
 
   const protocolo = rows[0].protocolo || "relatorio";
   const filename = `relatorio-${protocolo}.pdf`;
-  return new Response(pdfBuffer, {
+  return new Response(new Uint8Array(pdfBuffer), {
     status: 200,
     headers: {
       "Content-Type": "application/pdf",

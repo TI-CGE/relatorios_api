@@ -1,10 +1,13 @@
+import path from "node:path";
 import PDFDocument from "pdfkit";
+import sizeOf from "image-size";
 import type { LinhaRelatorio } from "../services/relatorio";
 
 const MARGIN = 48;
+const HEADER_PATH = path.join(import.meta.dir, "header.png");
 const SECTION_SIZE = 11;
 const BODY_SIZE = 10;
-const BG = "#f5f6f8";
+const BG = "#ffffff";
 const TEXT = "#1a1d21";
 const MUTED = "#5c6370";
 const ACCENT = "#0d9488";
@@ -35,8 +38,21 @@ export async function buildPdf(rows: LinhaRelatorio[]): Promise<Buffer> {
 
   doc.rect(0, 0, doc.page.width, doc.page.height).fill(BG);
 
+  let headerHeight = 0;
+  try {
+    const headerFile = Bun.file(HEADER_PATH);
+    if (!(await headerFile.exists())) throw new Error("header not found");
+    const headerBuffer = Buffer.from(await headerFile.arrayBuffer());
+    const dims = sizeOf(headerBuffer);
+    if (dims?.width && dims?.height) {
+      headerHeight = (doc.page.width * dims.height) / dims.width;
+      doc.image(headerBuffer, 0, 0, { width: doc.page.width });
+    }
+  } catch {
+  }
+
   if (rows.length === 0) {
-    doc.fillColor(TEXT).fontSize(BODY_SIZE).text("Nenhum dado encontrado.");
+    doc.fillColor(TEXT).fontSize(BODY_SIZE).text("Nenhum dado encontrado.", MARGIN, headerHeight + MARGIN);
     doc.end();
     return bufferPromise;
   }
@@ -45,7 +61,7 @@ export async function buildPdf(rows: LinhaRelatorio[]): Promise<Buffer> {
   const contentWidth = doc.page.width - 2 * MARGIN;
   const pageHeight = doc.page.height;
   const maxY = pageHeight - FOOTER_MARGIN;
-  let y = MARGIN;
+  let y = headerHeight + MARGIN;
 
   doc.fillColor(ACCENT).font("Helvetica-Bold").fontSize(SECTION_SIZE).text("DADOS DA SOLICITAÇÃO", MARGIN, y, { width: contentWidth });
   y = doc.y + 14;
@@ -64,9 +80,11 @@ export async function buildPdf(rows: LinhaRelatorio[]): Promise<Buffer> {
     ["Data Limite", formatDateShort(first.DataLimite)],
   ];
 
+  const lineHeight = doc.currentLineHeight();
+  const maxFieldHeight = lineHeight * 4;
   for (const [label, value] of fields) {
     doc.fillColor(MUTED).font("Helvetica").fontSize(BODY_SIZE).text(label + " ", MARGIN, y, { continued: true, width: contentWidth });
-    doc.fillColor(TEXT).text(value);
+    doc.fillColor(TEXT).text(value, { width: contentWidth, height: maxFieldHeight });
     y = doc.y + 8;
   }
 

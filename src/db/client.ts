@@ -1,16 +1,18 @@
-import { SQL } from "bun";
+import mysql from "mysql2/promise";
 
-const hostname = process.env.DB_HOST ?? "localhost";
+const host = process.env.DB_HOST ?? "localhost";
 const port = parseInt(process.env.DB_PORT ?? "3306", 10);
 const database = process.env.DB_NAME ?? "esic";
-const username = process.env.DB_USER ?? "";
+const user = process.env.DB_USER ?? "";
 const password = process.env.DB_PASSWORD ?? "";
 
-export const db = new SQL({
-  adapter: "mysql",
-  hostname,
+export const pool = mysql.createPool({
+  host,
   port,
   database,
-  username,
+  user,
   password,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
 });

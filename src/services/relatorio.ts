@@ -1,4 +1,4 @@
-import { db } from "../db/client";
+import { pool } from "../db/client";
 
 export interface LinhaRelatorio {
   protocolo: string;
@@ -17,6 +17,12 @@ export interface LinhaRelatorio {
   idMensagem: number;
 }
 
+function toDateOrString(v: unknown): Date | string {
+  if (v instanceof Date) return v;
+  if (v == null) return "";
+  return String(v);
+}
+
 function mapRow(r: Record<string, unknown>): LinhaRelatorio {
   return {
     protocolo: String(r?.protocolo ?? ""),
@@ -26,9 +32,9 @@ function mapRow(r: Record<string, unknown>): LinhaRelatorio {
     OrgaoEntidade: String(r?.OrgaoEntidade ?? ""),
     TipoManifestacao: String(r?.TipoManifestacao ?? ""),
     Status: String(r?.Status ?? ""),
-    DataInicial: r?.DataInicial ?? "",
-    DataLimite: r?.DataLimite ?? "",
-    dataMensagem: r?.dataMensagem ?? "",
+    DataInicial: toDateOrString(r?.DataInicial),
+    DataLimite: toDateOrString(r?.DataLimite),
+    dataMensagem: toDateOrString(r?.dataMensagem),
     textoMensagem: r?.textoMensagem != null ? String(r.textoMensagem) : null,
     idUsuario: Number(r?.idUsuario ?? 0),
     nome: String(r?.nome ?? ""),
@@ -39,7 +45,7 @@ function mapRow(r: Record<string, unknown>): LinhaRelatorio {
 export async function buscarDadosRelatorio(
   idSolicitacao: number
 ): Promise<LinhaRelatorio[]> {
-  const result = (await db`CALL sp_get_manifestacao_por_solicitacao(${idSolicitacao})`) as unknown;
+  const [result] = await pool.execute("CALL sp_get_manifestacao_por_solicitacao(?)", [idSolicitacao]);
   const firstSet = Array.isArray(result) && result.length > 0 && Array.isArray(result[0]) ? result[0] : result;
   const arr = Array.isArray(firstSet) ? firstSet : [];
   return (arr as Record<string, unknown>[]).map(mapRow);

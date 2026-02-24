@@ -8,10 +8,13 @@
     "test:pdf": "bun run scripts/test-pdf-mock.ts"
   },
   "dependencies": {
+    "image-size": "^2.0.2",
+    "mysql2": "^3.18.0",
     "pdfkit": "^0.15.0"
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/pdfkit": "^0.17.5",
     "typescript": "^5.0.0"
   }
 }
