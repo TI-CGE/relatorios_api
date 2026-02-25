@@ -7,7 +7,7 @@ on:
 env:
   COMPOSE_DIR: /srv/tomcat
   APP_PATH: /srv/tomcat/apps/tc3
-  SERVICE_NAME: relatorios-api
+  SERVICE_NAME: tc3
 
 jobs:
   deploy:
