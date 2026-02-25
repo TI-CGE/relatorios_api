@@ -1,0 +1,25 @@
+name: Verificação de build (PR para main)
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Instalar dependências
+        run: bun install --frozen-lockfile
+
+      - name: Verificar tipos
+        run: bunx tsc --noEmit
+
+      - name: Build da imagem Docker
+        run: docker build -t relatorios-api:test .
